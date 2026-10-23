@@ -31,17 +31,20 @@ type MetricPoint struct {
 
 // MetricsSummary represents the top-level throughput and health status.
 type MetricsSummary struct {
-	JobsPerSecond    float64       `json:"jobsPerSecond"`
-	CompletedPerSec  float64       `json:"completedPerSec"`
-	FailedPerSec     float64       `json:"failedPerSec"`
-	ErrorRatePercent float64       `json:"errorRatePercent"`
-	AverageWaitMs    float64       `json:"averageWaitMs"`
-	AverageExecMs    float64       `json:"averageExecMs"`
-	TotalActiveQueues int          `json:"totalActiveQueues"`
-	TotalWaitingJobs int64         `json:"totalWaitingJobs"`
-	TotalActiveJobs  int64         `json:"totalActiveJobs"`
-	TotalFailedJobs  int64         `json:"totalFailedJobs"`
-	History          []MetricPoint `json:"history"`
+	JobsPerSecond      float64       `json:"jobsPerSecond"`
+	CompletedPerSec    float64       `json:"completedPerSec"`
+	FailedPerSec       float64       `json:"failedPerSec"`
+	ErrorRatePercent   float64       `json:"errorRatePercent"`
+	AverageWaitMs      float64       `json:"averageWaitMs"`
+	AverageExecMs      float64       `json:"averageExecMs"`
+	TotalActiveQueues  int           `json:"totalActiveQueues"`
+	TotalWaitingJobs   int64         `json:"totalWaitingJobs"`
+	TotalActiveJobs    int64         `json:"totalActiveJobs"`
+	TotalFailedJobs    int64         `json:"totalFailedJobs"`
+	TimeToEmptySeconds int64         `json:"timeToEmptySeconds"`
+	SLABreached        bool          `json:"slaBreached"`
+	SLAMessage         string        `json:"slaMessage,omitempty"`
+	History            []MetricPoint `json:"history"`
 }
 
 // MetricsEngine tracks sliding-window telemetry for queues.
@@ -159,4 +162,19 @@ func (m *MetricsEngine) GetSummary() MetricsSummary {
 	}
 
 	return summary
+}
+
+// ComputeSLA calculates queue drain estimations and flags SLA degradation.
+func (m *MetricsEngine) ComputeSLA(summary *MetricsSummary, totalWaiting int64) {
+	summary.TotalWaitingJobs = totalWaiting
+	if summary.JobsPerSecond > 0.05 && totalWaiting > 0 {
+		summary.TimeToEmptySeconds = int64(float64(totalWaiting) / summary.JobsPerSecond)
+	}
+	if summary.ErrorRatePercent > 10.0 {
+		summary.SLABreached = true
+		summary.SLAMessage = "Error rate exceeds 10% SLA threshold"
+	} else if summary.TimeToEmptySeconds > 1800 {
+		summary.SLABreached = true
+		summary.SLAMessage = "Backlog drain time exceeds 30m SLA threshold"
+	}
 }

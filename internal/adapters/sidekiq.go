@@ -73,13 +73,14 @@ func (s *SidekiqAdapter) DiscoverQueues(ctx context.Context, rdb redis.Universal
 		if err != nil {
 			continue
 		}
+		paused, _ := s.IsQueuePaused(ctx, rdb, qName)
 		results = append(results, QueueInfo{
 			Name:      qName,
 			Type:      s.Type(),
 			Stats:     stats,
 			KeyPrefix: fmt.Sprintf("queue:%s", qName),
 			Workers:   0,
-			Paused:    false,
+			Paused:    paused,
 		})
 	}
 
@@ -297,3 +298,32 @@ func (s *SidekiqAdapter) DetectStalls(ctx context.Context, rdb redis.UniversalCl
 func (s *SidekiqAdapter) ReleaseLock(ctx context.Context, rdb redis.UniversalClient, queue, lockKey string) error {
 	return rdb.Del(ctx, lockKey).Err()
 }
+
+// PauseQueue marks a Sidekiq queue as paused.
+func (s *SidekiqAdapter) PauseQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	pipe := rdb.Pipeline()
+	pipe.SAdd(ctx, "queues:paused", queue)
+	pipe.Set(ctx, fmt.Sprintf("queue:%s:paused", queue), "1", 0)
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
+// ResumeQueue unpauses a Sidekiq queue.
+func (s *SidekiqAdapter) ResumeQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	pipe := rdb.Pipeline()
+	pipe.SRem(ctx, "queues:paused", queue)
+	pipe.Del(ctx, fmt.Sprintf("queue:%s:paused", queue))
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
+// IsQueuePaused checks whether the Sidekiq queue is paused.
+func (s *SidekiqAdapter) IsQueuePaused(ctx context.Context, rdb redis.UniversalClient, queue string) (bool, error) {
+	isMember, err := rdb.SIsMember(ctx, "queues:paused", queue).Result()
+	if err == nil && isMember {
+		return true, nil
+	}
+	exists, err := rdb.Exists(ctx, fmt.Sprintf("queue:%s:paused", queue)).Result()
+	return exists > 0, err
+}
+

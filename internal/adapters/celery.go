@@ -74,13 +74,14 @@ func (c *CeleryAdapter) DiscoverQueues(ctx context.Context, rdb redis.UniversalC
 		if err != nil {
 			continue
 		}
+		paused, _ := c.IsQueuePaused(ctx, rdb, qName)
 		results = append(results, QueueInfo{
 			Name:      qName,
 			Type:      c.Type(),
 			Stats:     stats,
 			KeyPrefix: qName,
 			Workers:   int(stats.Active),
-			Paused:    false,
+			Paused:    paused,
 		})
 	}
 
@@ -318,6 +319,22 @@ func (c *CeleryAdapter) DetectStalls(ctx context.Context, rdb redis.UniversalCli
 // ReleaseLock frees a lock key.
 func (c *CeleryAdapter) ReleaseLock(ctx context.Context, rdb redis.UniversalClient, queue, lockKey string) error {
 	return rdb.Del(ctx, lockKey).Err()
+}
+
+// PauseQueue marks a Celery queue as paused.
+func (c *CeleryAdapter) PauseQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	return rdb.Set(ctx, fmt.Sprintf("celery:%s:paused", queue), "1", 0).Err()
+}
+
+// ResumeQueue unpauses a Celery queue.
+func (c *CeleryAdapter) ResumeQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	return rdb.Del(ctx, fmt.Sprintf("celery:%s:paused", queue)).Err()
+}
+
+// IsQueuePaused checks whether the Celery queue is paused.
+func (c *CeleryAdapter) IsQueuePaused(ctx context.Context, rdb redis.UniversalClient, queue string) (bool, error) {
+	exists, err := rdb.Exists(ctx, fmt.Sprintf("celery:%s:paused", queue)).Result()
+	return exists > 0, err
 }
 
 func min(a, b int) int {

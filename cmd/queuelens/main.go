@@ -105,10 +105,12 @@ func runServeCommand(args []string) {
 		fmt.Println(">> Redis connection verified.")
 	}
 
-	stallAudit := engine.NewStallAuditor(registry, rdb, broadcaster)
+	webhookURL := getEnv("WEBHOOK_URL", "")
+	notifier := engine.NewWebhookNotifier(webhookURL)
+	stallAudit := engine.NewStallAuditor(registry, rdb, broadcaster, notifier)
 	stallAudit.StartBackgroundAudit(context.Background(), 10*time.Second)
 
-	apiServer := server.NewServer(rdb, registry, broadcaster, metrics, stallAudit, targetAddr, *demoMode)
+	apiServer := server.NewServer(rdb, registry, broadcaster, metrics, stallAudit, notifier, targetAddr, *demoMode)
 	mux := http.NewServeMux()
 	apiServer.RegisterRoutes(mux)
 	server.RegisterStaticHandlers(mux)

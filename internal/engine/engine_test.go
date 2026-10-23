@@ -60,7 +60,7 @@ func TestStallAuditor(t *testing.T) {
 
 	registry := adapters.NewRegistry()
 	broadcaster := engine.NewEventBroadcaster(50)
-	auditor := engine.NewStallAuditor(registry, rdb, broadcaster)
+	auditor := engine.NewStallAuditor(registry, rdb, broadcaster, nil)
 
 	ctx := context.Background()
 

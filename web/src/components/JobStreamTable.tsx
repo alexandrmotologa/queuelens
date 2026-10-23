@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { JobEvent, JobState, QueueInfo } from '../types';
-import { Filter, Search, Eye, ArrowRight, Play, CheckCircle2, XCircle, Clock, Zap } from 'lucide-react';
+import { Filter, Search, Eye, ArrowRight, CheckCircle2, XCircle, Clock, Zap, Calendar } from 'lucide-react';
 
 interface JobStreamTableProps {
   events: JobEvent[];
@@ -15,14 +15,29 @@ export const JobStreamTable: React.FC<JobStreamTableProps> = ({
 }) => {
   const [selectedQueue, setSelectedQueue] = useState<string>('all');
   const [selectedState, setSelectedState] = useState<string>('all');
+  const [timeWindow, setTimeWindow] = useState<string>('all'); // all, 15m, 1h, 24h
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  const now = Date.now();
   const filteredEvents = events.filter((ev) => {
     if (selectedQueue !== 'all' && ev.queue !== selectedQueue) return false;
     if (selectedState !== 'all' && ev.toState !== selectedState) return false;
+
+    // Time window filter
+    if (timeWindow !== 'all') {
+      const eventTime = new Date(ev.timestamp).getTime();
+      const diffMins = (now - eventTime) / (1000 * 60);
+      if (timeWindow === '15m' && diffMins > 15) return false;
+      if (timeWindow === '1h' && diffMins > 60) return false;
+      if (timeWindow === '24h' && diffMins > 1440) return false;
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      return ev.id.toLowerCase().includes(q) || ev.name.toLowerCase().includes(q);
+      const matchID = ev.id.toLowerCase().includes(q);
+      const matchName = ev.name.toLowerCase().includes(q);
+      const matchError = ev.errorReason?.toLowerCase().includes(q);
+      return matchID || matchName || matchError;
     }
     return true;
   });
@@ -73,12 +88,13 @@ export const JobStreamTable: React.FC<JobStreamTableProps> = ({
     <div className="space-y-4">
       {/* Controls / Filter Bar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="relative flex-1 md:w-64">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto flex-1">
+          <div className="relative flex-1 min-w-[200px] md:max-w-xs">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
             <input
+              id="stream-search"
               type="text"
-              placeholder="Search by job ID or task name..."
+              placeholder="Search ID, name, or error (Press '/' to focus)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-800/80 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
@@ -111,6 +127,20 @@ export const JobStreamTable: React.FC<JobStreamTableProps> = ({
               <option value="completed">Completed</option>
               <option value="failed">Failed</option>
             </select>
+
+            <div className="flex items-center gap-1 pl-1">
+              <Calendar className="h-3.5 w-3.5 text-slate-500" />
+              <select
+                value={timeWindow}
+                onChange={(e) => setTimeWindow(e.target.value)}
+                className="px-2.5 py-1.5 text-xs rounded-lg bg-slate-800/80 border border-slate-700 text-slate-200 focus:outline-none focus:border-sky-500"
+              >
+                <option value="all">All Time</option>
+                <option value="15m">Last 15 mins</option>
+                <option value="1h">Last 1 hour</option>
+                <option value="24h">Last 24 hours</option>
+              </select>
+            </div>
           </div>
         </div>
 

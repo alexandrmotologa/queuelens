@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { QueueInfo, MetricsSummary, QueueType } from '../types';
-import { Zap, Clock, AlertTriangle, CheckCircle, Flame, Layers, Trash2, ArrowUpRight } from 'lucide-react';
+import { Zap, Clock, AlertTriangle, CheckCircle, Flame, Layers, Trash2, ArrowUpRight, Pause, Play, Hourglass, ShieldAlert } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 interface QueueOverviewGridProps {
@@ -8,6 +8,8 @@ interface QueueOverviewGridProps {
   metrics: MetricsSummary | null;
   onSelectQueue: (queueName: string, state?: string) => void;
   onPurgeQueue: (qType: QueueType, queue: string, state: string) => void;
+  onTogglePauseQueue: (qType: QueueType, queue: string, currentlyPaused: boolean) => Promise<void>;
+  onDrainQueue: (qType: QueueType, queue: string) => Promise<void>;
   stallCount: number;
 }
 
@@ -16,8 +18,12 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
   metrics,
   onSelectQueue,
   onPurgeQueue,
+  onTogglePauseQueue,
+  onDrainQueue,
   stallCount,
 }) => {
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
   const getBadgeColor = (type: QueueType) => {
     switch (type) {
       case 'bullmq':
@@ -33,10 +39,36 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
     }
   };
 
+  const formatTTE = (secs?: number) => {
+    if (secs === undefined || secs <= 0) return 'Instant';
+    if (secs < 60) return `${secs}s`;
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    if (m < 60) return `~${m}m ${s}s`;
+    const h = Math.floor(m / 60);
+    return `~${h}h ${m % 60}m`;
+  };
+
   const chartData = metrics?.history || [];
 
   return (
     <div className="space-y-6">
+      {/* SLA Breach Warning Banner */}
+      {metrics?.slaBreached && (
+        <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 flex items-center justify-between text-red-300 text-xs shadow-md animate-pulse">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="h-5 w-5 text-red-400 flex-shrink-0" />
+            <div>
+              <span className="font-semibold text-red-200">SLA Degradation Warning: </span>
+              {metrics.slaMessage || 'Queue wait times or error rates are currently breaching operational targets'}
+            </div>
+          </div>
+          <span className="font-mono text-[11px] bg-red-900/60 px-2.5 py-1 rounded border border-red-700/60">
+            Action Recommended
+          </span>
+        </div>
+      )}
+
       {/* Top Metrics Banner */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
@@ -48,7 +80,18 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
             {metrics ? metrics.jobsPerSecond.toFixed(1) : '0.0'}
             <span className="text-xs text-slate-400 font-sans ml-1">jobs/s</span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Rolling 60s rate</div>
+          <div className="text-[11px] text-slate-500 mt-1">Rolling 60s velocity</div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+            <span>Time-to-Empty (TTE)</span>
+            <Hourglass className="h-4 w-4 text-indigo-400" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-white">
+            {formatTTE(metrics?.timeToEmptySeconds)}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-1">Backlog drain pace</div>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
@@ -59,18 +102,7 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
           <div className="text-2xl font-bold font-mono text-white">
             {metrics ? metrics.errorRatePercent.toFixed(1) : '0.0'}%
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Failed vs processed</div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
-            <span>Waiting Backlog</span>
-            <Clock className="h-4 w-4 text-indigo-400" />
-          </div>
-          <div className="text-2xl font-bold font-mono text-white">
-            {metrics ? metrics.totalWaitingJobs.toLocaleString() : '0'}
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1">Across all queues</div>
+          <div className="text-[11px] text-slate-500 mt-1">Failed vs completed</div>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
@@ -81,7 +113,7 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
           <div className="text-2xl font-bold font-mono text-white">
             {metrics ? metrics.totalFailedJobs.toLocaleString() : '0'}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Requires remediation</div>
+          <div className="text-[11px] text-slate-500 mt-1">Dead-letter count</div>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
@@ -150,7 +182,7 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-white">Discovered Queues ({queues.length})</h2>
-            <p className="text-xs text-slate-400">Auto-detected Redis task queues across frameworks</p>
+            <p className="text-xs text-slate-400">Control queue lifecycle, pause consumption, and purge backlogs</p>
           </div>
         </div>
 
@@ -170,6 +202,7 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
               const pActive = ((q.stats.active / total) * 100).toFixed(0);
               const pFail = ((q.stats.failed / total) * 100).toFixed(0);
               const pDone = ((q.stats.completed / total) * 100).toFixed(0);
+              const isActionLoading = loadingAction === q.name;
 
               return (
                 <div
@@ -186,14 +219,43 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
                         <h3 className="font-semibold text-slate-100 text-sm truncate" title={q.name}>
                           {q.name}
                         </h3>
+                        {q.paused && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            PAUSED
+                          </span>
+                        )}
                       </div>
-                      <button
-                        onClick={() => onSelectQueue(q.name)}
-                        className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium transition-colors"
-                      >
-                        Inspect
-                        <ArrowUpRight className="h-3 w-3" />
-                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        {/* Pause / Resume Button */}
+                        <button
+                          disabled={isActionLoading}
+                          onClick={async () => {
+                            setLoadingAction(q.name);
+                            try {
+                              await onTogglePauseQueue(q.type, q.name, q.paused);
+                            } finally {
+                              setLoadingAction(null);
+                            }
+                          }}
+                          title={q.paused ? 'Resume Queue Consumption' : 'Pause Queue Consumption'}
+                          className={`p-1.5 rounded-lg border text-xs transition-all ${
+                            q.paused
+                              ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/40 text-emerald-400'
+                              : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                          }`}
+                        >
+                          {q.paused ? <Play className="h-3.5 w-3.5 fill-current" /> : <Pause className="h-3.5 w-3.5" />}
+                        </button>
+
+                        <button
+                          onClick={() => onSelectQueue(q.name)}
+                          className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium transition-colors ml-1"
+                        >
+                          Inspect
+                          <ArrowUpRight className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Proportional State Bar */}
@@ -228,16 +290,27 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
                   {/* Actions footer */}
                   <div className="flex items-center justify-between pt-2 text-[11px] text-slate-500">
                     <span className="font-mono">{q.keyPrefix}</span>
-                    {q.stats.failed > 0 && (
-                      <button
-                        onClick={() => onPurgeQueue(q.type, q.name, 'failed')}
-                        className="text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"
-                        title="Purge Failed Jobs"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        Purge DLQ
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {q.stats.waiting > 0 && (
+                        <button
+                          onClick={() => onDrainQueue(q.type, q.name)}
+                          className="text-slate-400 hover:text-slate-200 transition-colors"
+                          title="Drain waiting jobs"
+                        >
+                          Drain
+                        </button>
+                      )}
+                      {q.stats.failed > 0 && (
+                        <button
+                          onClick={() => onPurgeQueue(q.type, q.name, 'failed')}
+                          className="text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"
+                          title="Purge Failed Jobs"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Purge DLQ
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

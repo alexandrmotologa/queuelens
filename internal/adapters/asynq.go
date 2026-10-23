@@ -69,13 +69,14 @@ func (a *AsynqAdapter) DiscoverQueues(ctx context.Context, rdb redis.UniversalCl
 		if err != nil {
 			continue
 		}
+		paused, _ := a.IsQueuePaused(ctx, rdb, qName)
 		results = append(results, QueueInfo{
 			Name:      qName,
 			Type:      a.Type(),
 			Stats:     stats,
 			KeyPrefix: fmt.Sprintf("asynq:{%s}", qName),
 			Workers:   int(stats.Active),
-			Paused:    false,
+			Paused:    paused,
 		})
 	}
 
@@ -351,3 +352,20 @@ func (a *AsynqAdapter) DetectStalls(ctx context.Context, rdb redis.UniversalClie
 func (a *AsynqAdapter) ReleaseLock(ctx context.Context, rdb redis.UniversalClient, queue, lockKey string) error {
 	return rdb.Del(ctx, lockKey).Err()
 }
+
+// PauseQueue marks an Asynq queue as paused.
+func (a *AsynqAdapter) PauseQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	return rdb.Set(ctx, fmt.Sprintf("asynq:{%s}:paused", queue), "1", 0).Err()
+}
+
+// ResumeQueue unpauses an Asynq queue.
+func (a *AsynqAdapter) ResumeQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	return rdb.Del(ctx, fmt.Sprintf("asynq:{%s}:paused", queue)).Err()
+}
+
+// IsQueuePaused checks whether the Asynq queue is paused.
+func (a *AsynqAdapter) IsQueuePaused(ctx context.Context, rdb redis.UniversalClient, queue string) (bool, error) {
+	exists, err := rdb.Exists(ctx, fmt.Sprintf("asynq:{%s}:paused", queue)).Result()
+	return exists > 0, err
+}
+

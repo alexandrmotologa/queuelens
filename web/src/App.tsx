@@ -5,6 +5,8 @@ import { JobStreamTable } from './components/JobStreamTable';
 import { DlqClusterView } from './components/DlqClusterView';
 import { StallMonitor } from './components/StallMonitor';
 import { PayloadModal } from './components/PayloadModal';
+import { ConnectModal } from './components/ConnectModal';
+import { AlertsModal } from './components/AlertsModal';
 import { useQueueStream } from './hooks/useQueueStream';
 import { QueueInfo, ServerStatus, ErrorCluster, StallWarning, Job, QueueType } from './types';
 
@@ -16,6 +18,10 @@ export function App() {
   const [stalls, setStalls] = useState<StallWarning[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [replayingClusterId, setReplayingClusterId] = useState<string | null>(null);
+
+  // Modals state
+  const [isConnectOpen, setIsConnectOpen] = useState(false);
+  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
 
   const { events, metrics, connected: wsConnected } = useQueueStream();
 
@@ -41,6 +47,45 @@ export function App() {
     fetchAllData();
     const interval = setInterval(fetchAllData, 8000);
     return () => clearInterval(interval);
+  }, [fetchAllData]);
+
+  // Global Keyboard Shortcuts (1-4 tabs, / search, r refresh, Esc close)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if typing in an input or textarea
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+        if (e.key === 'Escape') {
+          (e.target as HTMLElement).blur();
+        }
+        return;
+      }
+
+      if (e.key === '1') {
+        setActiveTab('overview');
+      } else if (e.key === '2') {
+        setActiveTab('stream');
+      } else if (e.key === '3') {
+        setActiveTab('dlq');
+      } else if (e.key === '4') {
+        setActiveTab('stalls');
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        fetchAllData();
+      } else if (e.key === '/') {
+        e.preventDefault();
+        setActiveTab('stream');
+        setTimeout(() => {
+          document.getElementById('stream-search')?.focus();
+        }, 50);
+      } else if (e.key === 'Escape') {
+        setSelectedJob(null);
+        setIsConnectOpen(false);
+        setIsAlertsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [fetchAllData]);
 
   const handleInspectJob = async (queueType: string, queue: string, id: string) => {
@@ -114,6 +159,84 @@ export function App() {
     }
   };
 
+  const handleImportBundle = async (bundleData: string) => {
+    const res = await fetch('/api/dlq/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: bundleData,
+    });
+    if (res.ok) {
+      const result = await res.json();
+      alert(`Import complete: ${result.succeeded} jobs re-enqueued, ${result.failed} failed.`);
+      fetchAllData();
+    } else {
+      const err = await res.json();
+      alert(`Import failed: ${err.error}`);
+    }
+  };
+
+  const handleBatchTransform = async (
+    cluster: ErrorCluster,
+    findText: string,
+    replaceText: string,
+    rateLimit: number
+  ) => {
+    const res = await fetch('/api/dlq/batch-transform', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        queueType: cluster.sampleQueueType,
+        queue: cluster.sampleQueue,
+        jobIds: cluster.jobIds,
+        findText,
+        replaceText,
+        replayAfterSave: true,
+        rateLimitPerSec: rateLimit,
+      }),
+    });
+    if (res.ok) {
+      const result = await res.json();
+      alert(`Batch transform & replay complete: ${result.succeeded} updated & re-enqueued.`);
+      fetchAllData();
+    } else {
+      const err = await res.json();
+      alert(`Batch transform error: ${err.error}`);
+    }
+  };
+
+  const handleTogglePauseQueue = async (qType: QueueType, queue: string, currentlyPaused: boolean) => {
+    const action = currentlyPaused ? 'resume' : 'pause';
+    try {
+      const res = await fetch(`/api/queues/${qType}/${queue}/${action}`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        fetchAllData();
+      } else {
+        const err = await res.json();
+        alert(`Failed to ${action} queue: ${err.error}`);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDrainQueue = async (qType: QueueType, queue: string) => {
+    if (!window.confirm(`Drain all waiting backlog from queue "${queue}"? This action drops pending tasks.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/queues/${qType}/${queue}/drain`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        fetchAllData();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleForceUnlock = async (queueType: QueueType, queue: string, lockKey: string) => {
     try {
       const res = await fetch('/api/stalls/unlock', {
@@ -145,6 +268,19 @@ export function App() {
     }
   };
 
+  const handleConnect = async (url: string) => {
+    const res = await fetch('/api/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to switch connection');
+    }
+    await fetchAllData();
+  };
+
   const totalDlqJobs = clusters.reduce((acc, c) => acc + c.count, 0);
 
   return (
@@ -155,6 +291,8 @@ export function App() {
         setActiveTab={setActiveTab}
         wsConnected={wsConnected}
         onRefresh={fetchAllData}
+        onOpenConnect={() => setIsConnectOpen(true)}
+        onOpenAlerts={() => setIsAlertsOpen(true)}
         stallCount={stalls.length}
         dlqCount={totalDlqJobs}
       />
@@ -166,6 +304,8 @@ export function App() {
             metrics={metrics}
             onSelectQueue={(_name) => setActiveTab('stream')}
             onPurgeQueue={handlePurgeQueue}
+            onTogglePauseQueue={handleTogglePauseQueue}
+            onDrainQueue={handleDrainQueue}
             stallCount={stalls.length}
           />
         )}
@@ -183,6 +323,8 @@ export function App() {
             clusters={clusters}
             onReplayCluster={handleReplayCluster}
             onInspectJob={handleInspectJob}
+            onImportBundle={handleImportBundle}
+            onBatchTransform={handleBatchTransform}
             replayingClusterId={replayingClusterId}
           />
         )}
@@ -201,6 +343,18 @@ export function App() {
         onClose={() => setSelectedJob(null)}
         onRetry={handleRetryJob}
         onDelete={handleDeleteJob}
+      />
+
+      <ConnectModal
+        isOpen={isConnectOpen}
+        onClose={() => setIsConnectOpen(false)}
+        currentAddr={status?.redisAddr || ''}
+        onConnect={handleConnect}
+      />
+
+      <AlertsModal
+        isOpen={isAlertsOpen}
+        onClose={() => setIsAlertsOpen(false)}
       />
     </div>
   );

@@ -107,6 +107,22 @@ func TestBullMQAdapter(t *testing.T) {
 	if len(stalls) != 1 || stalls[0].JobID != "job-stalled" {
 		t.Fatalf("expected 1 stall for job-stalled, got %v", stalls)
 	}
+
+	// Pause & Resume test
+	if err := adapter.PauseQueue(ctx, rdb, qName); err != nil {
+		t.Fatalf("pause queue failed: %v", err)
+	}
+	paused, _ := adapter.IsQueuePaused(ctx, rdb, qName)
+	if !paused {
+		t.Fatal("expected queue to be paused")
+	}
+	if err := adapter.ResumeQueue(ctx, rdb, qName); err != nil {
+		t.Fatalf("resume queue failed: %v", err)
+	}
+	paused, _ = adapter.IsQueuePaused(ctx, rdb, qName)
+	if paused {
+		t.Fatal("expected queue to be unpaused")
+	}
 }
 
 func TestAsynqAdapter(t *testing.T) {

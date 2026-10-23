@@ -74,13 +74,14 @@ func (b *BullMQAdapter) DiscoverQueues(ctx context.Context, rdb redis.UniversalC
 			}
 		}
 
+		paused, _ := b.IsQueuePaused(ctx, rdb, qName)
 		results = append(results, QueueInfo{
 			Name:      qName,
 			Type:      b.Type(),
 			Stats:     stats,
 			KeyPrefix: fmt.Sprintf("%s:%s", b.Prefix, qName),
 			Workers:   int(stats.Active),
-			Paused:    false,
+			Paused:    paused,
 		})
 	}
 
@@ -356,3 +357,32 @@ func (b *BullMQAdapter) DetectStalls(ctx context.Context, rdb redis.UniversalCli
 func (b *BullMQAdapter) ReleaseLock(ctx context.Context, rdb redis.UniversalClient, queue, lockKey string) error {
 	return rdb.Del(ctx, lockKey).Err()
 }
+
+// PauseQueue marks a BullMQ queue as paused.
+func (b *BullMQAdapter) PauseQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	pipe := rdb.Pipeline()
+	pipe.HSet(ctx, b.key(queue, "meta"), "paused", "1")
+	pipe.Set(ctx, b.key(queue, "paused"), "1", 0)
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
+// ResumeQueue unpauses a BullMQ queue.
+func (b *BullMQAdapter) ResumeQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error {
+	pipe := rdb.Pipeline()
+	pipe.HSet(ctx, b.key(queue, "meta"), "paused", "0")
+	pipe.Del(ctx, b.key(queue, "paused"))
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
+// IsQueuePaused checks whether the BullMQ queue is in paused state.
+func (b *BullMQAdapter) IsQueuePaused(ctx context.Context, rdb redis.UniversalClient, queue string) (bool, error) {
+	val, err := rdb.HGet(ctx, b.key(queue, "meta"), "paused").Result()
+	if err == nil && val == "1" {
+		return true, nil
+	}
+	exists, _ := rdb.Exists(ctx, b.key(queue, "paused")).Result()
+	return exists > 0, nil
+}
+

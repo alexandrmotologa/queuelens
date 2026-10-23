@@ -96,4 +96,7 @@ type QueueAdapter interface {
 	PurgeQueue(ctx context.Context, rdb redis.UniversalClient, queue string, state JobState) (int64, error)
 	DetectStalls(ctx context.Context, rdb redis.UniversalClient, queue string) ([]StallWarning, error)
 	ReleaseLock(ctx context.Context, rdb redis.UniversalClient, queue, lockKey string) error
+	PauseQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error
+	ResumeQueue(ctx context.Context, rdb redis.UniversalClient, queue string) error
+	IsQueuePaused(ctx context.Context, rdb redis.UniversalClient, queue string) (bool, error)
 }

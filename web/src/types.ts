@@ -92,6 +92,9 @@ export interface MetricsSummary {
   totalWaitingJobs: number;
   totalActiveJobs: number;
   totalFailedJobs: number;
+  timeToEmptySeconds?: number;
+  slaBreached?: boolean;
+  slaMessage?: string;
   history: MetricPoint[];
 }
 

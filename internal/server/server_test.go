@@ -25,9 +25,10 @@ func TestServerAPI(t *testing.T) {
 	registry := adapters.NewRegistry()
 	broadcaster := engine.NewEventBroadcaster(100)
 	metrics := engine.NewMetricsEngine(60)
-	stallAudit := engine.NewStallAuditor(registry, rdb, broadcaster)
+	notifier := engine.NewWebhookNotifier("")
+	stallAudit := engine.NewStallAuditor(registry, rdb, broadcaster, notifier)
 
-	srv := server.NewServer(rdb, registry, broadcaster, metrics, stallAudit, s.Addr(), false)
+	srv := server.NewServer(rdb, registry, broadcaster, metrics, stallAudit, notifier, s.Addr(), false)
 	mux := http.NewServeMux()
 	srv.RegisterRoutes(mux)
 	server.RegisterStaticHandlers(mux)
@@ -70,5 +71,21 @@ func TestServerAPI(t *testing.T) {
 	mux.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		t.Errorf("expected 200 on SPA fallback route /stream, got %d", w.Code)
+	}
+
+	// 6. Test DLQ export JSON
+	req = httptest.NewRequest(http.MethodGet, "/api/dlq/export?format=json", nil)
+	w = httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 on /api/dlq/export, got %d", w.Code)
+	}
+
+	// 7. Test Alerts Config
+	req = httptest.NewRequest(http.MethodGet, "/api/alerts/config", nil)
+	w = httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 on /api/alerts/config, got %d", w.Code)
 	}
 }

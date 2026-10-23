@@ -15,24 +15,38 @@ type StallAuditor struct {
 	registry    *adapters.Registry
 	rdb         redis.UniversalClient
 	broadcaster *EventBroadcaster
+	notifier    *WebhookNotifier
 	mu          sync.RWMutex
 	warnings    []adapters.StallWarning
 	lastAudit   time.Time
 }
 
 // NewStallAuditor creates a stall auditor instance.
-func NewStallAuditor(registry *adapters.Registry, rdb redis.UniversalClient, broadcaster *EventBroadcaster) *StallAuditor {
+func NewStallAuditor(registry *adapters.Registry, rdb redis.UniversalClient, broadcaster *EventBroadcaster, notifier *WebhookNotifier) *StallAuditor {
 	return &StallAuditor{
 		registry:    registry,
 		rdb:         rdb,
 		broadcaster: broadcaster,
+		notifier:    notifier,
 		warnings:    make([]adapters.StallWarning, 0),
 	}
 }
 
+// SetRedisClient updates the Redis client instance (e.g. on connection switch).
+func (s *StallAuditor) SetRedisClient(rdb redis.UniversalClient) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.rdb = rdb
+}
+
 // AuditNow performs an immediate sweep across all registered queues.
 func (s *StallAuditor) AuditNow(ctx context.Context) ([]adapters.StallWarning, error) {
-	queues, err := s.registry.DiscoverAll(ctx, s.rdb)
+	s.mu.RLock()
+	client := s.rdb
+	notifier := s.notifier
+	s.mu.RUnlock()
+
+	queues, err := s.registry.DiscoverAll(ctx, client)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +58,7 @@ func (s *StallAuditor) AuditNow(ctx context.Context) ([]adapters.StallWarning, e
 			continue
 		}
 
-		warnings, err := adapter.DetectStalls(ctx, s.rdb, q.Name)
+		warnings, err := adapter.DetectStalls(ctx, client, q.Name)
 		if err == nil {
 			allWarnings = append(allWarnings, warnings...)
 		}
@@ -54,6 +68,16 @@ func (s *StallAuditor) AuditNow(ctx context.Context) ([]adapters.StallWarning, e
 	s.warnings = allWarnings
 	s.lastAudit = time.Now()
 	s.mu.Unlock()
+
+	if len(allWarnings) > 0 && notifier != nil {
+		_ = notifier.SendAlert(ctx, AlertEvent{
+			Type:      "stall_detected",
+			Title:     "Worker Lock Stall Detected",
+			Message:   fmt.Sprintf("%d stalled worker jobs detected holding expired locks", len(allWarnings)),
+			Severity:  SeverityWarning,
+			Timestamp: time.Now(),
+		})
+	}
 
 	return allWarnings, nil
 }
