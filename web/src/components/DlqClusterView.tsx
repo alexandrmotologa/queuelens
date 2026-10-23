@@ -86,38 +86,38 @@ export const DlqClusterView: React.FC<DlqClusterViewProps> = ({
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Export Controls */}
-          <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
+          <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-lg border border-slate-700 shrink-0">
             <button
               onClick={() => handleExport('json')}
-              className="flex items-center gap-1 px-2.5 py-1 rounded text-xs text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs text-slate-300 hover:text-white hover:bg-slate-700 transition-colors whitespace-nowrap"
               title="Export all failed jobs as JSON bundle"
             >
-              <Download className="h-3 w-3" />
-              JSON
+              <Download className="h-3 w-3 shrink-0" />
+              <span>JSON</span>
             </button>
             <button
               onClick={() => handleExport('csv')}
-              className="flex items-center gap-1 px-2.5 py-1 rounded text-xs text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs text-slate-300 hover:text-white hover:bg-slate-700 transition-colors whitespace-nowrap"
               title="Export all failed jobs as CSV"
             >
-              <Download className="h-3 w-3" />
-              CSV
+              <Download className="h-3 w-3 shrink-0" />
+              <span>CSV</span>
             </button>
           </div>
 
           {/* Import Button */}
           <button
             onClick={() => setIsImportOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors whitespace-nowrap shrink-0"
           >
-            <Upload className="h-3.5 w-3.5" />
-            Import Bundle
+            <Upload className="h-3.5 w-3.5 shrink-0" />
+            <span>Import Bundle</span>
           </button>
 
           {/* Rate Limiter Slider */}
-          <div className="flex items-center gap-3 bg-slate-800/60 px-3.5 py-1.5 rounded-lg border border-slate-700/60">
+          <div className="inline-flex items-center gap-3 bg-slate-800/60 px-3.5 py-1.5 rounded-lg border border-slate-700/60 shrink-0 whitespace-nowrap">
             <div className="flex items-center gap-1.5 text-xs text-slate-300">
-              <Sliders className="h-3 w-3 text-sky-400" />
+              <Sliders className="h-3 w-3 text-sky-400 shrink-0" />
               <span className="font-mono text-sky-400 font-semibold">{rateLimit} j/s</span>
             </div>
             <input
@@ -181,35 +181,35 @@ export const DlqClusterView: React.FC<DlqClusterViewProps> = ({
                   </div>
 
                   {/* Actions Header */}
-                  <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap shrink-0" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleExport('json', cluster.id)}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors shrink-0"
                       title="Export cluster to JSON"
                     >
-                      <Download className="h-3.5 w-3.5" />
+                      <Download className="h-3.5 w-3.5 shrink-0" />
                     </button>
                     <button
                       onClick={() => setTransformCluster(cluster)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors whitespace-nowrap shrink-0"
                       title="Find and replace text in payloads before replay"
                     >
-                      <Replace className="h-3.5 w-3.5 text-indigo-400" />
-                      Batch Transform
+                      <Replace className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                      <span>Batch Transform</span>
                     </button>
                     <button
                       onClick={() => onInspectJob(cluster.sampleQueueType, cluster.sampleQueue, cluster.sampleJobId)}
-                      className="px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors whitespace-nowrap shrink-0"
                     >
-                      Inspect Payload
+                      <span>Inspect Payload</span>
                     </button>
                     <button
                       disabled={isReplaying}
                       onClick={() => onReplayCluster(cluster, rateLimit)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white transition-all disabled:opacity-50 shadow-sm shadow-sky-500/20"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white transition-all disabled:opacity-50 shadow-sm shadow-sky-500/20 whitespace-nowrap shrink-0"
                     >
-                      <RotateCw className={`h-3.5 w-3.5 ${isReplaying ? 'animate-spin' : ''}`} />
-                      {isReplaying ? 'Replaying...' : `Retry All (${cluster.count})`}
+                      <RotateCw className={`h-3.5 w-3.5 shrink-0 ${isReplaying ? 'animate-spin' : ''}`} />
+                      <span>{isReplaying ? 'Replaying...' : `Retry All (${cluster.count})`}</span>
                     </button>
                   </div>
                 </div>

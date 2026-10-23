@@ -46,37 +46,37 @@ export const JobStreamTable: React.FC<JobStreamTableProps> = ({
     switch (state) {
       case 'waiting':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            <Clock className="h-3 w-3" />
-            WAITING
+          <span className="whitespace-nowrap inline-flex items-center gap-1.5 text-[11px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <Clock className="h-3 w-3 shrink-0" />
+            <span>WAITING</span>
           </span>
         );
       case 'active':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 animate-pulse">
-            <Zap className="h-3 w-3" />
-            ACTIVE
+          <span className="whitespace-nowrap inline-flex items-center gap-1.5 text-[11px] font-mono px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 animate-pulse">
+            <Zap className="h-3 w-3 shrink-0" />
+            <span>ACTIVE</span>
           </span>
         );
       case 'completed':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <CheckCircle2 className="h-3 w-3" />
-            COMPLETED
+          <span className="whitespace-nowrap inline-flex items-center gap-1.5 text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <CheckCircle2 className="h-3 w-3 shrink-0" />
+            <span>COMPLETED</span>
           </span>
         );
       case 'failed':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
-            <XCircle className="h-3 w-3" />
-            FAILED
+          <span className="whitespace-nowrap inline-flex items-center gap-1.5 text-[11px] font-mono px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
+            <XCircle className="h-3 w-3 shrink-0" />
+            <span>FAILED</span>
           </span>
         );
       case 'delayed':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Clock className="h-3 w-3" />
-            DELAYED
+          <span className="whitespace-nowrap inline-flex items-center gap-1.5 text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <Clock className="h-3 w-3 shrink-0" />
+            <span>DELAYED</span>
           </span>
         );
       default:
@@ -206,10 +206,10 @@ export const JobStreamTable: React.FC<JobStreamTableProps> = ({
                     <td className="py-2.5 px-4 text-right whitespace-nowrap">
                       <button
                         onClick={() => onInspectJob(ev.queueType, ev.queue, ev.id)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-sky-300 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-sky-300 transition-colors whitespace-nowrap shrink-0"
                       >
-                        <Eye className="h-3 w-3" />
-                        Inspect
+                        <Eye className="h-3 w-3 shrink-0" />
+                        <span>Inspect</span>
                       </button>
                     </td>
                   </tr>

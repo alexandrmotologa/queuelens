@@ -100,17 +100,17 @@ export const StallMonitor: React.FC<StallMonitorProps> = ({
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => onInspectJob(stall.queueType, stall.queue, stall.jobId)}
-                          className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                          className="inline-flex items-center px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors whitespace-nowrap shrink-0"
                         >
                           View
                         </button>
                         <button
                           disabled={unlockingKey === stall.lockKey}
                           onClick={() => handleUnlock(stall)}
-                          className="flex items-center gap-1 px-3 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 transition-colors font-medium text-xs disabled:opacity-50"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 transition-colors font-medium text-xs disabled:opacity-50 whitespace-nowrap shrink-0"
                         >
-                          <Unlock className="h-3 w-3" />
-                          {unlockingKey === stall.lockKey ? 'Releasing...' : 'Force Unlock'}
+                          <Unlock className="h-3 w-3 shrink-0" />
+                          <span>{unlockingKey === stall.lockKey ? 'Releasing...' : 'Force Unlock'}</span>
                         </button>
                       </div>
                     </td>

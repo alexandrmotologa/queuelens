@@ -71,61 +71,61 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
 
       {/* Top Metrics Banner */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5">
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 whitespace-nowrap">
             <span>Throughput</span>
-            <Zap className="h-4 w-4 text-sky-400" />
+            <Zap className="h-4 w-4 text-sky-400 shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white whitespace-nowrap">
             {metrics ? metrics.jobsPerSecond.toFixed(1) : '0.0'}
             <span className="text-xs text-slate-400 font-sans ml-1">j/s</span>
           </div>
-          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Rolling 60s velocity</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 whitespace-nowrap">Rolling 60s velocity</div>
         </div>
 
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 whitespace-nowrap">
             <span>Time-to-Empty</span>
-            <Hourglass className="h-4 w-4 text-indigo-400" />
+            <Hourglass className="h-4 w-4 text-indigo-400 shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-white truncate">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white whitespace-nowrap truncate">
             {formatTTE(metrics?.timeToEmptySeconds)}
           </div>
-          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Backlog drain pace</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 whitespace-nowrap">Backlog drain pace</div>
         </div>
 
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 whitespace-nowrap">
             <span>Error Rate</span>
-            <AlertTriangle className="h-4 w-4 text-amber-400" />
+            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white whitespace-nowrap">
             {metrics ? metrics.errorRatePercent.toFixed(1) : '0.0'}%
           </div>
-          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Failed vs completed</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 whitespace-nowrap">Failed vs completed</div>
         </div>
 
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 whitespace-nowrap">
             <span>DLQ / Failed</span>
-            <Flame className="h-4 w-4 text-red-400" />
+            <Flame className="h-4 w-4 text-red-400 shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white whitespace-nowrap">
             {metrics ? metrics.totalFailedJobs.toLocaleString() : '0'}
           </div>
-          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Dead-letter count</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 whitespace-nowrap">Dead-letter count</div>
         </div>
 
         {/* 5th Card spans 2 columns on 2-col mobile for balanced grid */}
-        <div className="col-span-2 sm:col-span-1 p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="col-span-2 sm:col-span-1 p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5 whitespace-nowrap">
             <span>Worker Stalls</span>
-            <ShieldAlert className="h-4 w-4 text-amber-500" />
+            <ShieldAlert className="h-4 w-4 text-amber-500 shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white whitespace-nowrap">
             {stallCount}
           </div>
-          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Dead worker locks</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 whitespace-nowrap">Dead worker locks</div>
         </div>
       </div>
 
@@ -251,10 +251,10 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
 
                         <button
                           onClick={() => onSelectQueue(q.name)}
-                          className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium transition-colors ml-1"
+                          className="text-xs text-sky-400 hover:text-sky-300 inline-flex items-center gap-1 font-medium transition-colors whitespace-nowrap ml-1"
                         >
                           Inspect
-                          <ArrowUpRight className="h-3 w-3" />
+                          <ArrowUpRight className="h-3 w-3 shrink-0" />
                         </button>
                       </div>
                     </div>
@@ -270,32 +270,32 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
                     {/* Stats Breakdown */}
                     <div className="grid grid-cols-4 gap-2 text-center text-xs py-2 border-y border-slate-800/60 my-3">
                       <div>
-                        <div className="text-slate-400 text-[10px]">Waiting</div>
-                        <div className="font-mono font-semibold text-indigo-400">{q.stats.waiting}</div>
+                        <div className="text-slate-400 text-[10px] whitespace-nowrap">Waiting</div>
+                        <div className="font-mono font-semibold text-indigo-400 whitespace-nowrap">{q.stats.waiting}</div>
                       </div>
                       <div>
-                        <div className="text-slate-400 text-[10px]">Active</div>
-                        <div className="font-mono font-semibold text-sky-400">{q.stats.active}</div>
+                        <div className="text-slate-400 text-[10px] whitespace-nowrap">Active</div>
+                        <div className="font-mono font-semibold text-sky-400 whitespace-nowrap">{q.stats.active}</div>
                       </div>
                       <div>
-                        <div className="text-slate-400 text-[10px]">Failed</div>
-                        <div className="font-mono font-semibold text-red-400">{q.stats.failed}</div>
+                        <div className="text-slate-400 text-[10px] whitespace-nowrap">Failed</div>
+                        <div className="font-mono font-semibold text-red-400 whitespace-nowrap">{q.stats.failed}</div>
                       </div>
                       <div>
-                        <div className="text-slate-400 text-[10px]">Completed</div>
-                        <div className="font-mono font-semibold text-emerald-400">{q.stats.completed}</div>
+                        <div className="text-slate-400 text-[10px] whitespace-nowrap">Completed</div>
+                        <div className="font-mono font-semibold text-emerald-400 whitespace-nowrap">{q.stats.completed}</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Actions footer */}
                   <div className="flex items-center justify-between pt-2 text-[11px] text-slate-500">
-                    <span className="font-mono">{q.keyPrefix}</span>
-                    <div className="flex items-center gap-3">
+                    <span className="font-mono truncate mr-2">{q.keyPrefix}</span>
+                    <div className="flex items-center gap-3 shrink-0">
                       {q.stats.waiting > 0 && (
                         <button
                           onClick={() => onDrainQueue(q.type, q.name)}
-                          className="text-slate-400 hover:text-slate-200 transition-colors"
+                          className="text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap"
                           title="Drain waiting jobs"
                         >
                           Drain
@@ -304,11 +304,11 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
                       {q.stats.failed > 0 && (
                         <button
                           onClick={() => onPurgeQueue(q.type, q.name, 'failed')}
-                          className="text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"
+                          className="text-red-400 hover:text-red-300 inline-flex items-center gap-1 transition-colors whitespace-nowrap"
                           title="Purge Failed Jobs"
                         >
-                          <Trash2 className="h-3 w-3" />
-                          Purge DLQ
+                          <Trash2 className="h-3 w-3 shrink-0" />
+                          <span>Purge DLQ</span>
                         </button>
                       )}
                     </div>
