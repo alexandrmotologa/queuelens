@@ -1,0 +1,33 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+queuelens
+
+# Go
+vendor/
+go.work
+
+# Node
+node_modules/
+dist/
+build/
+.pnpm-store/
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Test coverage & profiling
+*.out
+*.prof
