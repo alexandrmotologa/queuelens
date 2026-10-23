@@ -1,6 +1,20 @@
-# QueueLens
+<p align="center">
+  <img src="docs/images/logo.png?raw=true" alt="QueueLens Logo" width="130" style="border-radius: 24px;" />
+</p>
 
-Universal background task queue observability studio for Redis and Valkey. Auto-detects BullMQ, Celery, Asynq, and Sidekiq queues, tracks job state transitions in real time, audits worker locks to detect stalls, and clusters dead-letter queue failures for 1-click remediation.
+<h1 align="center">QueueLens</h1>
+
+<p align="center">
+  <a href="https://github.com/alexandrmotologa/queuelens/actions"><img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build" /></a>
+  <a href="https://go.dev/"><img src="https://img.shields.io/badge/go-1.23+-00ADD8?style=flat-square&logo=go" alt="Go Version" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react" alt="React 19" /></a>
+  <a href="https://redis.io/"><img src="https://img.shields.io/badge/redis-valkey-DC382D?style=flat-square&logo=redis" alt="Redis / Valkey" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" /></a>
+</p>
+
+<p align="center">
+  Universal background task queue observability studio for Redis and Valkey. Auto-detects BullMQ, Celery, Asynq, and Sidekiq queues, tracks job state transitions in real time, audits worker locks to detect stalls, and clusters dead-letter queue failures for 1-click remediation.
+</p>
 
 ![QueueLens Live Studio Demo](docs/images/queuelens_demo.gif)
 
@@ -45,6 +59,13 @@ Groups failed jobs by normalized error signature, displays sample stack traces, 
 Audits active job lease keys, compares worker heartbeats, and flags orphaned locks left behind by killed or OOM workers with 1-click force unlock.
 
 ![QueueLens Stall Monitor](docs/images/queuelens-4.png)
+
+### Responsive Mobile & Tablet Layout
+Adaptive interface layout with horizontal scroll navigation, touch-friendly queue controls, and stacked metrics for mobile phones and tablet viewports.
+
+<p align="center">
+  <img src="docs/images/queuelens-mobile.png" alt="QueueLens Mobile Responsive View" width="360" style="border-radius: 16px;" />
+</p>
 
 ---
 

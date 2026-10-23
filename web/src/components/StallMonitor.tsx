@@ -27,9 +27,9 @@ export const StallMonitor: React.FC<StallMonitorProps> = ({
   return (
     <div className="space-y-4">
       {/* Overview Banner */}
-      <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+      <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
             <ShieldAlert className="h-5 w-5" />
           </div>
           <div>
@@ -40,7 +40,7 @@ export const StallMonitor: React.FC<StallMonitorProps> = ({
           </div>
         </div>
 
-        <div className="text-xs font-mono px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
+        <div className="text-xs font-mono px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 self-end sm:self-auto">
           Detected Stalls: <span className="text-amber-400 font-bold">{stalls.length}</span>
         </div>
       </div>

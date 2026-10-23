@@ -70,61 +70,62 @@ export const QueueOverviewGrid: React.FC<QueueOverviewGridProps> = ({
       )}
 
       {/* Top Metrics Banner */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
             <span>Throughput</span>
             <Zap className="h-4 w-4 text-sky-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
             {metrics ? metrics.jobsPerSecond.toFixed(1) : '0.0'}
-            <span className="text-xs text-slate-400 font-sans ml-1">jobs/s</span>
+            <span className="text-xs text-slate-400 font-sans ml-1">j/s</span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Rolling 60s velocity</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Rolling 60s velocity</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
-            <span>Time-to-Empty (TTE)</span>
+            <span>Time-to-Empty</span>
             <Hourglass className="h-4 w-4 text-indigo-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white truncate">
             {formatTTE(metrics?.timeToEmptySeconds)}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Backlog drain pace</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Backlog drain pace</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
             <span>Error Rate</span>
             <AlertTriangle className="h-4 w-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
             {metrics ? metrics.errorRatePercent.toFixed(1) : '0.0'}%
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Failed vs completed</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Failed vs completed</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
             <span>DLQ / Failed</span>
             <Flame className="h-4 w-4 text-red-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
             {metrics ? metrics.totalFailedJobs.toLocaleString() : '0'}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Dead-letter count</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Dead-letter count</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
+        {/* 5th Card spans 2 columns on 2-col mobile for balanced grid */}
+        <div className="col-span-2 sm:col-span-1 p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
             <span>Worker Stalls</span>
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <ShieldAlert className="h-4 w-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-xl sm:text-2xl font-bold font-mono text-white">
             {stallCount}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">Dead worker locks</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Dead worker locks</div>
         </div>
       </div>
 

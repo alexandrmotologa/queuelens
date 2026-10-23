@@ -35,7 +35,7 @@ func main() {
 			runDLQCommand(os.Args[2:])
 			return
 		case "demo":
-			runServeCommand([]string{"--demo"})
+			runServeCommand(append([]string{"--demo"}, os.Args[2:]...))
 			return
 		case "serve":
 			runServeCommand(os.Args[2:])

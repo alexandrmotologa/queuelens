@@ -152,7 +152,7 @@ export const JobStreamTable: React.FC<JobStreamTableProps> = ({
       {/* Stream Table */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[640px]">
             <thead className="bg-slate-900/90 text-slate-400 border-b border-slate-800 text-[11px] font-mono uppercase tracking-wider">
               <tr>
                 <th className="py-3 px-4">Time</th>
